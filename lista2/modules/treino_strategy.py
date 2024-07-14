@@ -16,13 +16,20 @@ class STDStrategy(TreinoStrategy):
         self.fnLoss = fnLoss
         self.optimizer = optimizer
 
-    def train(self, model: nn.Module, dataloader: DataLoader, epochs: int) -> None:
+    def train(
+        self,
+        model: nn.Module,
+        dataloader: DataLoader,
+        epochs: int,
+        device: torch.device,
+    ) -> None:
         for epoch in range(epochs):
             model.train()
             total_loss = 0.0
             for _, (inputs, targets) in enumerate(dataloader):
                 self.optimizer.zero_grad()
                 inputs = inputs.view(-1, 28 * 28)
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = self.fnLoss(outputs, targets)
                 loss.backward()

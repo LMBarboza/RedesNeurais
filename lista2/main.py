@@ -27,6 +27,14 @@ def main() -> None:
     batch_size = config.getint("TRAINING", "batch_size")
     learning_rate = config.getfloat("TRAINING", "learning_rate")
     epochs = config.getint("TRAINING", "epochs")
+    use_cuda = config.getboolean("TRAINING", "cuda")
+
+    cuda = use_cuda and torch.cuda.is_available()
+
+    if cuda:
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
@@ -42,7 +50,9 @@ def main() -> None:
     sOutput = 10
 
     hiddenLayers = [128, 64]
-    model = RedeFactory.createRede(sInput, sOutput, hiddenLayers, fnActivation=nn.ReLU)
+    model = RedeFactory.createRede(
+        sInput, sOutput, hiddenLayers, fnActivation=nn.ReLU
+    ).to(device)
     print(model)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -51,7 +61,7 @@ def main() -> None:
     strategy = STDStrategy(loss, optimizer)
 
     trainer = Trainer(model, strategy)
-    trainer.train(train_dataloader, epochs)
+    trainer.train(train_dataloader, epochs, device)
 
 
 if __name__ == "__main__":
