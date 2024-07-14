@@ -1,4 +1,5 @@
 import argparse
+import json
 import configparser
 import torch
 import torch.nn as nn
@@ -44,7 +45,12 @@ def main() -> None:
         root="./data", train=True, download=True, transform=transform
     )
 
+    test_dataset = datasets.MNIST(
+        root="./data", train=False, download=True, transform=transform
+    )
+
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
     sInput = 28 * 28
     sOutput = 10
@@ -53,6 +59,7 @@ def main() -> None:
     model = RedeFactory.createRede(
         sInput, sOutput, hiddenLayers, fnActivation=nn.ReLU
     ).to(device)
+
     print(model)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -61,7 +68,10 @@ def main() -> None:
     strategy = STDStrategy(loss, optimizer)
 
     trainer = Trainer(model, strategy)
-    trainer.train(train_dataloader, epochs, device)
+    accuracy_list = trainer.train(train_dataloader, test_dataloader, epochs, device)
+
+    with open("accuracy.json", "w") as f:
+        json.dump(accuracy_list, f)
 
 
 if __name__ == "__main__":
