@@ -5,22 +5,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-import torch.nn.functional as F
 
 from modules.rede_factory import RedeFactory
 from modules.trainer import Trainer
 from modules.treino_strategy import STDStrategy
-
-
-def train(model, train_loader, optimizer):
-    model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        print(target)
-        optimizer.zero_grad()
-        output = model(data)
-        loss = F.nll_loss(output, target)
-        loss.backward()
-        optimizer.step()
 
 
 def main() -> None:
@@ -48,8 +36,6 @@ def main() -> None:
         root="./data", train=True, download=True, transform=transform
     )
 
-    train_dataset = [(x.view(-1, 28 * 28), y) for x, y in train_dataset]
-
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     sInput = 28 * 28
@@ -60,17 +46,12 @@ def main() -> None:
     print(model)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    loss = nn.CrossEntropyLoss()
 
-    for epoch in range(1, epochs + 1):
-        train(model, train_dataloader, optimizer)
-    # Training strategy
+    strategy = STDStrategy(loss, optimizer)
 
-
-#    strategy = STDStrategy(optimizer)
-#
-#    # Trainer
-#    trainer = Trainer(model, strategy)
-#    trainer.train(train_dataloader, epochs)
+    trainer = Trainer(model, strategy)
+    trainer.train(train_dataloader, epochs)
 
 
 if __name__ == "__main__":

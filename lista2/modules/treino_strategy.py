@@ -20,9 +20,9 @@ class STDStrategy(TreinoStrategy):
         for epoch in range(epochs):
             model.train()
             total_loss = 0.0
-            for batch in dataloader:
-                inputs, targets = batch
+            for _, (inputs, targets) in enumerate(dataloader):
                 self.optimizer.zero_grad()
+                inputs = inputs.view(-1, 28 * 28)
                 outputs = model(inputs)
                 loss = self.fnLoss(outputs, targets)
                 loss.backward()

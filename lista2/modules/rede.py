@@ -12,4 +12,4 @@ class RedeBase(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer in self.layers:
             x = layer(x)
-        return nn.functional.log_softmax(x, dim=1)
+        return x
