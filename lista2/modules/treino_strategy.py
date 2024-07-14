@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,9 +12,16 @@ class TreinoStrategy(ABC):
         self,
         model: nn.Module,
         dataloader: DataLoader,
+        testDataloader: DataLoader,
         epochs: int,
         device: torch.device,
-    ) -> None:
+    ) -> List[float]:
+        pass
+
+    @abstractmethod
+    def evaluate(
+        self, model: nn.Module, dataloader: DataLoader, device: torch.device
+    ) -> float:
         pass
 
 
@@ -26,9 +34,12 @@ class STDStrategy(TreinoStrategy):
         self,
         model: nn.Module,
         dataloader: DataLoader,
+        testDataloader: DataLoader,
         epochs: int,
         device: torch.device,
-    ) -> None:
+    ) -> List[float]:
+
+        accuracy_list = []
         for epoch in range(epochs):
             model.train()
             total_loss = 0.0
@@ -43,3 +54,27 @@ class STDStrategy(TreinoStrategy):
                 total_loss += loss.item()
             avg_loss = total_loss / len(dataloader)
             print(f"Epoch: {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
+
+            accuracy = self.evaluate(model, testDataloader, device)
+            accuracy_list.append(accuracy)
+            print(f"Epoch {epoch+1}/{epochs}, Test Accuracy: {accuracy:.2f}%")
+
+        return accuracy_list
+
+    def evaluate(
+        self, model: nn.Module, dataloader: DataLoader, device: torch.device
+    ) -> float:
+        model.to(device)
+        model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for _, (inputs, targets) in enumerate(dataloader):
+                inputs, targets = inputs.to(device), targets.to(device)
+                inputs = inputs.view(-1, 28 * 28)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += targets.size(0)
+                correct += (predicted == targets).sum().item()
+        accuracy = 100 * correct / total
+        return accuracy

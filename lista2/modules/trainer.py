@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, List
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -10,5 +10,13 @@ class Trainer:
         self.model = model
         self.strategy = strategy
 
-    def train(self, dataloader: DataLoader, epochs: int, device: torch.device) -> None:
-        self.strategy.train(self.model, dataloader, epochs, device)
+    def train(
+        self,
+        dataloader: DataLoader,
+        testDataloader: DataLoader,
+        epochs: int,
+        device: torch.device,
+    ) -> List[float]:
+        return self.strategy.train(
+            self.model, dataloader, testDataloader, epochs, device
+        )
