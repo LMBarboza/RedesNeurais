@@ -7,7 +7,13 @@ from torch.utils.data import DataLoader
 
 class TreinoStrategy(ABC):
     @abstractmethod
-    def train(self, model: nn.Module, dataloader: DataLoader, epochs: int) -> None:
+    def train(
+        self,
+        model: nn.Module,
+        dataloader: DataLoader,
+        epochs: int,
+        device: torch.device,
+    ) -> None:
         pass
 
 
