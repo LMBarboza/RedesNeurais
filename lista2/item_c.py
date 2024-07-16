@@ -26,7 +26,6 @@ def main() -> None:
     config.read(args.config)
 
     batch_size = config.getint("TRAINING", "batch_size")
-    learning_rate = config.getfloat("TRAINING", "learning_rate")
     epochs = config.getint("TRAINING", "epochs")
     use_cuda = config.getboolean("TRAINING", "cuda")
 
@@ -62,33 +61,26 @@ def main() -> None:
 
     print(model)
 
-    optimizer1 = optim.Adam(model.parameters(), lr=2)
-    optimizer2 = optim.Adam(model.parameters(), lr=1)
-    optimizer3 = optim.Adam(model.parameters(), lr=0.1)
-    optimizer4 = optim.Adam(model.parameters(), lr=0.01)
+    accuracy_list = []
+    learning_rates = [2, 1, 0.1, 0.01]
 
     loss = nn.CrossEntropyLoss()
+    for learning_rate in learning_rates:
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    strategy1 = STDStrategy(loss, optimizer1)
-    strategy2 = STDStrategy(loss, optimizer2)
-    strategy3 = STDStrategy(loss, optimizer3)
-    strategy4 = STDStrategy(loss, optimizer4)
+        strategy = STDStrategy(loss, optimizer)
 
-    trainer1 = Trainer(model, strategy1)
-    trainer2 = Trainer(model, strategy2)
-    trainer3 = Trainer(model, strategy3)
-    trainer4 = Trainer(model, strategy4)
+        trainer = Trainer(model, strategy)
 
-    accuracy_list1 = trainer1.train(train_dataloader, test_dataloader, epochs, device)
-    accuracy_list2 = trainer2.train(train_dataloader, test_dataloader, epochs, device)
-    accuracy_list3 = trainer3.train(train_dataloader, test_dataloader, epochs, device)
-    accuracy_list4 = trainer4.train(train_dataloader, test_dataloader, epochs, device)
+        accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
+        accuracy_list.append(accuracy)
+
+        for layer in model.children():
+            if hasattr(layer, "reset_parameters"):
+                layer.reset_parameters()
 
     with open("accuracy.json", "w") as f:
-        json.dump(accuracy_list1, f)
-        json.dump(accuracy_list2, f)
-        json.dump(accuracy_list3, f)
-        json.dump(accuracy_list4, f)
+        json.dump(accuracy_list, f)
 
 
 if __name__ == "__main__":
