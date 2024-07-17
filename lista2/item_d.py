@@ -57,6 +57,7 @@ def main() -> None:
 
     accuracy_list = []
     hiddenLayers = [[], [128], [128, 64], [128, 64, 32]]
+
     for i, layers in enumerate(hiddenLayers):
         model = RedeFactory.createRede(
             sInput, sOutput, layers, fnActivation=nn.ReLU
@@ -74,7 +75,7 @@ def main() -> None:
         accuracy_list.append(accuracy)
         torch.save(model.state_dict(), f"models/model{i}.pth")
 
-    with open("accuracy.json", "w") as f:
+    with open("layers_accuracy.json", "w") as f:
         json.dump(accuracy_list, f)
 
 

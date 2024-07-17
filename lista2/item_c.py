@@ -79,7 +79,7 @@ def main() -> None:
             if hasattr(layer, "reset_parameters"):
                 layer.reset_parameters()
 
-    with open("accuracy.json", "w") as f:
+    with open("lr_accuracy.json", "w") as f:
         json.dump(accuracy_list, f)
 
 
