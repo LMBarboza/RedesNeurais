@@ -66,6 +66,8 @@ def main() -> None:
 
     loss = nn.CrossEntropyLoss()
     for learning_rate in learning_rates:
+        print(f"Learning Rate: {learning_rate}")
+
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         strategy = STDStrategy(loss, optimizer)
@@ -75,9 +77,9 @@ def main() -> None:
         accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
         accuracy_list.append(accuracy)
 
-        for layer in model.children():
-            if hasattr(layer, "reset_parameters"):
-                layer.reset_parameters()
+        model.reset()
+
+        del optimizer, strategy, trainer
 
     with open("lr_accuracy.json", "w") as f:
         json.dump(accuracy_list, f)

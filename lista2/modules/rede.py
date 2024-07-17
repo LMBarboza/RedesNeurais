@@ -13,3 +13,8 @@ class RedeBase(nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x
+
+    def reset(self) -> None:
+        for layer in self.children():
+            if hasattr(layer, "reset_parameters"):
+                layer.reset_parameters()
