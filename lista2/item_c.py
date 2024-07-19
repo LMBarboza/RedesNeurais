@@ -27,6 +27,7 @@ def main() -> None:
 
     batch_size = config.getint("TRAINING", "batch_size")
     epochs = config.getint("TRAINING", "epochs")
+    learning_rate = config.getfloat("TRAINING", "learning_rate")
     use_cuda = config.getboolean("TRAINING", "cuda")
 
     cuda = use_cuda and torch.cuda.is_available()
@@ -54,32 +55,27 @@ def main() -> None:
     sInput = 28 * 28
     sOutput = 10
 
-    hiddenLayers = [128, 64]
+    hiddenLayers = [128]
+    accuracy_list = []
+
+    loss = nn.CrossEntropyLoss()
+    print(f"Learning Rate: {learning_rate}")
+
     model = RedeFactory.createRede(
         sInput, sOutput, hiddenLayers, fnActivation=nn.ReLU
     ).to(device)
 
     print(model)
 
-    accuracy_list = []
-    learning_rates = [2, 1, 0.1, 0.01]
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    loss = nn.CrossEntropyLoss()
-    for learning_rate in learning_rates:
-        print(f"Learning Rate: {learning_rate}")
+    strategy = STDStrategy(loss, optimizer)
 
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    trainer = Trainer(model, strategy)
 
-        strategy = STDStrategy(loss, optimizer)
+    accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
 
-        trainer = Trainer(model, strategy)
-
-        accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
-        accuracy_list.append(accuracy)
-
-        model.reset()
-
-        del optimizer, strategy, trainer
+    accuracy_list.append(accuracy)
 
     with open("lr_accuracy.json", "w") as f:
         json.dump(accuracy_list, f)
