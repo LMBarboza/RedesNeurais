@@ -10,7 +10,6 @@ from modules.factory import FactoryProducer
 from modules.trainer import Trainer
 from modules.treino_strategy import (
     GenerateStrategy,
-    ClassificationStrategy,
     VAEStrategy,
 )
 
@@ -31,11 +30,17 @@ def main() -> None:
         default="configurations.ini",
         help="PATH para configurações de treino",
     )
-
+    parser.add_argument(
+        "--latent_size",
+        type=int,
+        default=10,
+        help="Dimensão espaço latente",
+    )
     args = parser.parse_args()
     config = configparser.ConfigParser()
     config.read(args.config)
 
+    latent_size = args.latent_size
     batch_size = config.getint("TRAINING", "batch_size")
     learning_rate = config.getfloat("TRAINING", "learning_rate")
     epochs = config.getint("TRAINING", "epochs")
@@ -69,7 +74,7 @@ def main() -> None:
 
     model_conv = conv_factory.createRede(
         sInput=1,
-        sLatent=2,
+        sLatent=latent_size,
         sLayers=[16, 32, 64],
         fnActivation=nn.ReLU,
         sKernel=3,
@@ -78,7 +83,7 @@ def main() -> None:
 
     model_mlp = mlp_factory.createRede(
         sInput=784,
-        sLatent=2,
+        sLatent=latent_size,
         sLayers=[128, 64, 32],
         fnActivation=nn.ReLU,
         sKernel=3,
@@ -87,37 +92,32 @@ def main() -> None:
 
     model_vae = vae_factory.createRede(
         sInput=784,
-        sLatent=2,
+        sLatent=latent_size,
         sLayers=[128, 64, 32],
         fnActivation=nn.ReLU,
         sKernel=3,
         dropout=True,
     ).to(device)
 
-    #  print(model_mlp)
-    #
-    #  optimizer = optim.AdamW(model_mlp.parameters(), lr=learning_rate)
-    #  loss = nn.MSELoss()
-    #  generate_strategy = GenerateStrategy(loss, optimizer)
+    print(model_mlp)
 
-    #  #
-    #  #    # classification_losses = [nn.CrossEntropyLoss(), nn.MSELoss]
-    #  #    # classification_strategy = ClassificationStrategy(classification_losses, optimizer)
-    #  #
+    optimizer = optim.AdamW(model_mlp.parameters(), lr=learning_rate)
+    loss = nn.MSELoss()
+    generate_strategy = GenerateStrategy(loss, optimizer)
 
-    #  trainer = Trainer(model_mlp, generate_strategy)
-    #  accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
-    #  torch.save(model_mlp.state_dict(), f"models/model_mlp_2.pth")
-    #
-    #  print(model_conv)
+    trainer = Trainer(model_mlp, generate_strategy)
+    accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
+    torch.save(model_mlp.state_dict(), f"models/model_mlp_10.pth")
 
-    #  optimizer = optim.AdamW(model_conv.parameters(), lr=learning_rate)
-    #  loss = nn.MSELoss()
-    #  generate_strategy = GenerateStrategy(loss, optimizer)
+    print(model_conv)
 
-    #  trainer = Trainer(model_conv, generate_strategy)
-    #  accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
-    #  torch.save(model_conv.state_dict(), f"models/model_conv_2.pth")
+    optimizer = optim.AdamW(model_conv.parameters(), lr=learning_rate)
+    loss = nn.MSELoss()
+    generate_strategy = GenerateStrategy(loss, optimizer)
+
+    trainer = Trainer(model_conv, generate_strategy)
+    accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
+    torch.save(model_conv.state_dict(), f"models/model_conv_10.pth")
 
     print(model_vae)
     optimizer = optim.AdamW(model_vae.parameters(), lr=learning_rate)
@@ -125,7 +125,7 @@ def main() -> None:
 
     trainer = Trainer(model_vae, generate_strategy)
     accuracy = trainer.train(train_dataloader, test_dataloader, epochs, device)
-    torch.save(model_conv.state_dict(), f"models/model_vae_2.pth")
+    torch.save(model_vae.state_dict(), f"models/model_vae_10.pth")
 
 
 if __name__ == "__main__":

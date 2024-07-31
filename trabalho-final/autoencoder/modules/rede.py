@@ -3,16 +3,17 @@ import torch.nn as nn
 
 
 class AutoEncoder(nn.Module):
-    def __init__(self, mlp: bool = False) -> None:
+    def __init__(self, latent_size: int, mlp: bool = False) -> None:
         super().__init__()
         self.encoder = nn.Sequential()
+        self.classifier = nn.Linear(latent_size, 10)
         self.decoder = nn.Sequential()
         self.mlp = mlp
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         x_encode = self.encoder(x)
         x_decode = self.decoder(x_encode)
-        return x_encode, x_decode
+        return self.classifier(x_encode), x_decode
 
 
 class VAE(nn.Module):

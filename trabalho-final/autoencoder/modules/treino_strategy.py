@@ -124,7 +124,7 @@ class ClassificationStrategy(TreinoStrategy):
                     inputs = inputs.view(-1, 28 * 28)
                 inputs, targets = inputs.to(device), targets.to(device)
                 input_encoded, outputs = model(inputs)
-                loss_classification = self.fnLoss[0](input_encoded, inputs)
+                loss_classification = self.fnLoss[0](input_encoded, targets)
                 loss_decoder = self.fnLoss[1](outputs, inputs)
                 loss = loss_classification + loss_decoder
                 loss.backward()

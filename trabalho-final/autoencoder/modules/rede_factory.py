@@ -14,7 +14,7 @@ class MLPAutoencoderFactory(AbstractRedeFactory):
         sKernel,
         dropout,
     ) -> AutoEncoder:
-        rede = AutoEncoder(mlp=True)
+        rede = AutoEncoder(sLatent, mlp=True)
         encoder = nn.Sequential()
         decoder = nn.Sequential()
         sAntes = sInput

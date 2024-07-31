@@ -15,7 +15,7 @@ class ConvAutoencoderFactory(AbstractRedeFactory):
         dropout: bool = False,
     ) -> AutoEncoder:
 
-        rede = AutoEncoder()
+        rede = AutoEncoder(sLatent)
         encoder = nn.Sequential()
         decoder = nn.Sequential()
         sAntes = sInput
